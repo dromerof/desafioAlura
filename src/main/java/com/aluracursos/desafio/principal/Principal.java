@@ -6,8 +6,10 @@ import com.aluracursos.desafio.service.ConsumoAPI;
 import com.aluracursos.desafio.service.ConvierteDatos;
 
 import java.util.Comparator;
+import java.util.DoubleSummaryStatistics;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class Principal {
     private final ConsumoAPI consumoApi = new ConsumoAPI();
@@ -33,17 +35,27 @@ public class Principal {
         //Búsqueda de libros por nombre
         System.out.println("\nPor favor escribe el comienzo del titulo del libro que deseas encontrar\n");
         var cominezoTitulo = teclado.nextLine();
-        json = consumoApi.obtenerDatos(API_URL+"?search=" + cominezoTitulo.replace(" ", "+"));
+        json = consumoApi.obtenerDatos(API_URL + "?search=" + cominezoTitulo.replace(" ", "+"));
         var datosBusqueda = conversor.obtenerDatos(json, Datos.class);
         Optional<DatosLibros> libroBuscado = datosBusqueda.resultados().stream()
                 .filter(l -> l.titulo().toUpperCase().contains(cominezoTitulo.toUpperCase()))
                 .findFirst();
-        if (libroBuscado.isPresent()){
+        if (libroBuscado.isPresent()) {
             System.out.println("Libro encontrado ");
             System.out.println(libroBuscado.get());
-        }else {
+        } else {
             System.out.println("Libro no encontrado");
         }
+
+        //Trabajando con estadísticas
+        DoubleSummaryStatistics est = datos.resultados().stream()
+                .filter(d -> d.numeroDeDescargas() > 0)
+                .collect(Collectors.summarizingDouble(DatosLibros::numeroDeDescargas));
+        System.out.println("Cantidad media de descargas: " + est.getAverage());
+        System.out.println("Cantidad máxima de descargas: " + est.getMax());
+        System.out.println("Cantidad mínima de descargas: " + est.getMin());
+        System.out.println(" Cantidad de registros evaluados para calcular las estadísticas: " + est.getCount());
+
 
     }
 
